@@ -3,7 +3,62 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 const tableName = 'Items';
 
-// Handle the method reqeusted and the properly response
+// Create new item
+const create = async (data) => {
+    const params = {
+        TableName: tableName,
+        Item: data,
+    };
+    await dynamoDb.put(params).promise();
+    return data;
+};
+
+// Return a specific item
+const get = async (itemId) => {
+    const params = {
+        TableName: tableName,
+        Key: { itemId },
+    };
+    const result = await dynamoDb.get(params).promise();
+    return result.Item;
+};
+
+// Return all items
+const index = async () => {
+    const params = {
+        TableName: tableName,
+    };
+    const result = await dynamoDb.scan(params).promise();
+    return result.Items;
+};
+
+// Update a specific item
+const update = async (data) => {
+    const params = {
+        TableName: tableName,
+        Key: { itemId: data.itemId },
+        UpdateExpression: 'set info = :info',
+        ExpressionAttributeValues: {
+            ':info': data.info,
+        },
+        ReturnValues: 'UPDATED_NEW',
+    };
+    await dynamoDb.update(params).promise();
+    return data;
+};
+
+// Delete a specific item
+const destroy = async (itemId) => {
+    const params = {
+        TableName: tableName,
+        Key: { itemId },
+    };
+    await dynamoDb.delete(params).promise();
+    return { itemId };
+};
+
+
+// Handle the method requested and the properly response
 const handler = async (event) => {
     const httpMethod = event.httpMethod;
 
@@ -27,7 +82,7 @@ const handler = async (event) => {
                 response = await update(body);
                 break;
             case 'DELETE':
-                response = await delete(itemId);
+                response = await destroy(itemId);
                 break;        
             default:
                 throw new Error(`Unsupported method "${method}"`);
