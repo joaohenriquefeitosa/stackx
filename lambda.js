@@ -67,7 +67,7 @@ const handler = async (event) => {
     let response = [];
 
     try {
-        switch (key) {
+        switch (httpMethod) {
             case 'POST':
                 response = await create(body);
                 break;
