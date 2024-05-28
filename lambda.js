@@ -1,5 +1,8 @@
-const AWS = require('aws-sdk');
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+
+const client = new DynamoDBClient({});
+const dynamoDb = DynamoDBDocumentClient.from(client);
 
 const tableName = 'Items';
 
@@ -59,29 +62,39 @@ const destroy = async (itemId) => {
 
 
 // Handle the method requested and the properly response
-const handler = async (event) => {
-    const httpMethod = event.httpMethod;
-
-    const body = JSON.parse(event.body);
-    const itemId = body?.itemId;
+export const handler = async (event) => {
+    
+    const httpMethod = event.requestContext.http.method;
+    
     let response = [];
-
+    let body;
+    let itemId;
     try {
         switch (httpMethod) {
             case 'POST':
+                body = JSON.parse(event.body);
                 response = await create(body);
                 break;
             case 'GET':
+                body = JSON.parse(event.body);
+                console.log('Body:', body);
+            
+                itemId = body?.itemId; // Use optional chaining to safely access itemId
+                console.log('Item ID:', itemId);
+            
                 if (itemId !== undefined) {
-                    response = await index();
-                } else {
                     response = await get(itemId);
+                } else {
+                    response = await index();
                 }
                 break;
             case 'PUT':
+                body = JSON.parse(event.body);
                 response = await update(body);
                 break;
             case 'DELETE':
+                body = JSON.parse(event.body);
+                itemId = body?.itemId;
                 response = await destroy(itemId);
                 break;        
             default:
@@ -98,8 +111,4 @@ const handler = async (event) => {
             body: JSON.stringify({ error: error.message }),
         };
     }
-}
-
-exports = {
-    handler
 }
