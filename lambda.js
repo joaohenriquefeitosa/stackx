@@ -85,7 +85,7 @@ const handler = async (event) => {
                 response = await destroy(itemId);
                 break;        
             default:
-                throw new Error(`Unsupported method "${method}"`);
+                throw new Error(`Unsupported method "${httpMethod}"`);
         }
 
         return {
